@@ -273,56 +273,6 @@ class info:
 
         print('发送成功...\n')
 
-
-
-    def get_response(msg):
-        # 这里我们就像在“3. 实现最简单的与图灵机器人的交互”中做的一样
-        # 构造了要发送给服务器的数据
-        apiUrl = 'http://www.tuling123.com/openapi/api'
-
-        key_length = len(info.tuling_key)
-        try:
-            num = 0
-            while (num < 5):
-                data = {
-                    'key': info.tuling_key[random.randint(0, key_length)],
-                    'info': msg,
-                    'userid': '460281',
-                }
-                r = requests.post(apiUrl, data=data).json()
-                print(r.get('text'))
-                # 如果没有请求次数了,则重新请求
-                if r['code'] == 40004:
-                    continue
-                num += num
-            # 纯粹为了打个日志
-            if r['code'] == 40004:
-                print(r.get('text'))
-            return r.get('text')
-
-        # 为了防止服务器没有正常响应导致程序异常退出，这里用try-except捕获了异常
-        # 如果服务器没能正常交互（返回非json或无法连接），那么就会进入下面的return
-        except:
-            # 将会返回一个None
-            return
-
-    # 这里是我们在“1. 实现微信消息的获取”中已经用到过的同样的注册方法
-    @itchat.msg_register(itchat.content.TEXT)
-    def tuling_reply(msg):
-        # 为了保证在图灵Key出现问题的时候仍旧可以回复，这里设置一个默认回复
-        defaultReply = 'I received: ' + msg['Text']
-        # 如果图灵Key出现问题，那么reply将会是None
-        reply = info.get_response(msg['Text'])
-        # a or b的意思是，如果a有内容，那么返回a，否则返回b
-        # 有内容一般就是指非空或者非None，你可以用`if a: print('True')`来测试
-        if info.open_reply_limit == 1:
-            if msg['User']['NickName'] in info.auto_reply_list:
-                return reply or defaultReply
-            else:
-                return
-        else:
-            return reply or defaultReply
-
     def addTimer(self):
 
         # 定时任务
@@ -334,9 +284,71 @@ class info:
         # scheduler.add_job(self.start_today_info, 'interval', seconds=120)
         scheduler.start()
 
-# 为了让实验过程更加方便（修改程序不用多次扫码），我们使用热启动
-if __name__ == '__main__':
 
-    itchat.auto_login(hotReload=True)
-    info().addTimer()
-    itchat.run()
+def get_response(msg):
+    # 这里我们就像在“3. 实现最简单的与图灵机器人的交互”中做的一样
+    # 构造了要发送给服务器的数据
+    apiUrl = 'http://www.tuling123.com/openapi/api'
+
+    try:
+        key_length = len(info.tuling_key)
+        data = {
+            'key': info.tuling_key[random.randint(0, key_length)],
+            'info': msg,
+            'userid': '460281',
+        }
+        r = requests.post(apiUrl, data=data).json()
+        return r.get('text')
+
+    # key_length = len(info.tuling_key)
+    # try:
+    #     num = 0
+    #     while (num < 5):
+    #         data = {
+    #             'key': info.tuling_key[random.randint(0, key_length)],
+    #             'info': msg,
+    #             'userid': '460281',
+    #         }
+    #         r = requests.post(apiUrl, data=data).json()
+    #         print(r.get('text'))
+    #         # 如果没有请求次数了,则重新请求
+    #         if r['code'] == 40004:
+    #             continue
+    #         num += num
+    #     # 纯粹为了打个日志
+    #     if r['code'] == 40004:
+    #         print(r.get('text'))
+    #     return r.get('text')
+
+    # 为了防止服务器没有正常响应导致程序异常退出，这里用try-except捕获了异常
+    # 如果服务器没能正常交互（返回非json或无法连接），那么就会进入下面的return
+    except:
+        # 将会返回一个None
+        return
+
+# 这里是我们在“1. 实现微信消息的获取”中已经用到过的同样的注册方法
+@itchat.msg_register(itchat.content.TEXT)
+def tuling_reply(msg):
+    # 为了保证在图灵Key出现问题的时候仍旧可以回复，这里设置一个默认回复
+    defaultReply = 'I received: ' + msg['Text']
+    # 如果图灵Key出现问题，那么reply将会是None
+    reply = get_response(msg['Text'])
+    # a or b的意思是，如果a有内容，那么返回a，否则返回b
+    # 有内容一般就是指非空或者非None，你可以用`if a: print('True')`来测试
+    return reply or defaultReply
+    # if info.open_reply_limit == 1:
+    #     if msg['User']['NickName'] in info.auto_reply_list:
+    #         return reply or defaultReply
+    #     else:
+    #         return
+    # else:
+    #     return reply or defaultReply
+
+
+# 为了让实验过程更加方便（修改程序不用多次扫码），我们使用热启动
+# if __name__ == '__main__':
+
+itchat.auto_login(hotReload=True)
+info().addTimer()
+itchat.run()
+
