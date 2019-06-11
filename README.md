@@ -10,12 +10,12 @@
 
 ### 灵感来源
 
-在掘金看到了一篇《[用Node+wechaty写一个爬虫脚本每天定时给女(男)朋友发微信暖心话][1]》后，我就想为什么不用 Python 去实现这个功能呢。 JUST TO IT，说做就做。  
-这文章的结构也是参考上面这位朋友的。  
-本来只是写单人的，不过有些优（作）秀（死）的人表示女朋友不止一个。现已支持添加多人信息。
+好多地方都看到有这个项目的推文,所以就上来找到了大佬的源码. 但大佬的源码只有定时发送功能,出于学习的目的,又在原作者的基础上新增了自动回复功能 
+
+本来只是写单人的，不过有些优（作）秀（死）的人表示女朋友不止一个。现已支持添加多人信息。(这句话是作者说的---疯狂甩锅)
 
 ### 项目地址：
-Github: [https://github.com/sfyc23/EverydayWechat](https://github.com/sfyc23/EverydayWechat)。
+Github: [https://github.com/wujingfeng/EverydayWechat](https://github.com/wujingfeng/EverydayWechat)。
 
 ### 使用库
 - [itchat][2] - 微信个人号接口
