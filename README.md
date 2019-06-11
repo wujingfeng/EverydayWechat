@@ -4,7 +4,7 @@
 
 本项目非原创,只是在这位大佬https://github.com/sfyc23/EverydayWechat 的基础上补充了图灵自动回复功能,毕竟我觉得不回复女朋友的后果很严重
 
-# 用 Python + itchat 写一个爬虫脚本自动给多个女人发给微信暖心话
+# 用 Python + itchat 写一个爬虫脚本自动给多人发给微信暖心话
 
 ## 项目介绍：
 
