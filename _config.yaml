@@ -11,12 +11,33 @@ alarm_timed: '10:51'
 # 3 : 土味情话
 dictum_channel: 2
 #图灵key
-tuling_key: '359a013d925040a28e6191831f9f36bc'
+tuling_key:
+-
+    '52e1fe64f1e645caa17828a4be35d8d5'
+-
+    '8edce3ce905a4c1dbb965e6b35c3834d'
+-
+    'eb720a8970964f3f855d863d24406576'
+-
+    '1107d5601866433dba9599fac1bc0083'
+-
+    '71f28bf79c820df10d39b4074345ef8c'
+
+# 是否开启自动回复限制  1:对指定好友开启自动回复,2:对所有好友开启自动回复
+open_reply_limit: 2
+
+auto_reply_list:
+# 请填写好友的微信昵称
+-
+    '动霸tua'
+
+-
+    '刚把得'
 
 girlfriend_infos:
 -
     #女友微信昵称
-    wechat_name: '动霸tua'
+    wechat_name: 'filehelper'
     #女友所在城市
     city_name: '成都'
     # 从那天开始勾搭的（可空）

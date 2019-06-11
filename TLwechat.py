@@ -4,6 +4,7 @@
 ②借助图灵实现自动回复. 避免长时间不回复女友,家庭暴力很危险呀
 """
 import os
+import random
 import time
 from datetime import datetime
 import itchat
@@ -19,6 +20,7 @@ headers = {
                   'Chrome/67.0.3396.87 Safari/537.36',
 }
 dictum_channel_name = {1: 'ONE●一个', 2: '词霸(每日英语)', 3: '土味情话'}
+
 
 def get_init_data():
     """
@@ -41,6 +43,10 @@ def get_init_data():
 
     tuling_key = config.get('tuling_key')
 
+    auto_reply_list = config.get('auto_reply_list')
+
+    open_reply_limit = config.get('open_reply_limit')
+
     girlfriend_list = []
     girlfriend_infos = config.get('girlfriend_infos')
     for girlfriend in girlfriend_infos:
@@ -62,25 +68,37 @@ def get_init_data():
     print(init_msg)
 
     hour, minute = [int(x) for x in alarm_timed.split(':')]
-    return girlfriend_list, hour, minute, dictum_channel, tuling_key
+    return girlfriend_list, hour, minute, dictum_channel, tuling_key, auto_reply_list, open_reply_limit
 
 
-girlfriend_list, alarm_hour, alarm_minute, dictum_channel, tuling_key = get_init_data()
+girlfriend_list, alarm_hour, alarm_minute, dictum_channel, tuling_key, auto_reply_list, open_reply_limit = get_init_data()
 
 
 def get_response(msg):
     # 这里我们就像在“3. 实现最简单的与图灵机器人的交互”中做的一样
     # 构造了要发送给服务器的数据
     apiUrl = 'http://www.tuling123.com/openapi/api'
-    data = {
-        'key': tuling_key,
-        'info': msg,
-        'userid': '460281',
-    }
+
+    key_length = len(tuling_key)
     try:
-        r = requests.post(apiUrl, data=data).json()
-        # 字典的get方法在字典没有'text'值的时候会返回None而不会抛出异常
+        num = 0
+        while(num<5):
+            data = {
+                'key': tuling_key[random.randint(0,key_length)],
+                'info': msg,
+                'userid': '460281',
+            }
+            r = requests.post(apiUrl, data=data).json()
+            print(r.get('text'))
+            # 如果没有请求次数了,则重新请求
+            if r['code'] == 40004:
+                continue
+            num += num
+        # 纯粹为了打个日志
+        if r['code'] == 40004:
+            print(r.get('text'))
         return r.get('text')
+
     # 为了防止服务器没有正常响应导致程序异常退出，这里用try-except捕获了异常
     # 如果服务器没能正常交互（返回非json或无法连接），那么就会进入下面的return
     except:
@@ -97,7 +115,13 @@ def tuling_reply(msg):
     reply = get_response(msg['Text'])
     # a or b的意思是，如果a有内容，那么返回a，否则返回b
     # 有内容一般就是指非空或者非None，你可以用`if a: print('True')`来测试
-    return reply or defaultReply
+    if open_reply_limit == 1:
+        if msg['User']['NickName'] in auto_reply_list:
+            return reply or defaultReply
+        else:
+            return
+    else:
+        return reply or defaultReply
 
 
 def start_today_info(is_test=False):
@@ -304,10 +328,5 @@ def is_online(auto_login=False):
 # 为了让实验过程更加方便（修改程序不用多次扫码），我们使用热启动
 
 itchat.auto_login(hotReload=True)
-f = itchat.search_friends('动霸tua')
-# result = itchat.get_friends()
-# for i in result:
-#     if i['NickName'] == '动霸tua':
-#         itchat.send('hahahah',toUserName=i['UserName'])
 start_today_info()
 itchat.run()
