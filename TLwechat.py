@@ -286,14 +286,13 @@ def get_response(msg):
     # 构造了要发送给服务器的数据
     apiUrl = 'http://www.tuling123.com/openapi/api'
 
-    # key_length = len(tuling_key)-1
+    key_length = len(tuling_key)-1
     try:
         num = 0
         while (num < 5):
             num += 1
             data = {
-                # 'key': tuling_key[random.randint(0, key_length)],
-                'key': '359a013d925040a28e6191831f9f36bc',
+                'key': tuling_key[random.randint(0, key_length)],
                 'info': msg,
                 'userid': '460281',
             }
