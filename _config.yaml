@@ -3,7 +3,7 @@
 #  http://einverne.github.io/post/2015/08/yaml.html
 
 # 定时时间
-alarm_timed: '18:38'
+alarm_timed: '08:48'
 
 # 格言渠道
 # 1 : ONE●一个
@@ -14,6 +14,10 @@ dictum_channel: 2
 tuling_key:
 -
     'accdd9340ef949738ea6a242bb0d94e1'
+-
+    '359159e3a4e942618d78e88b949ca024'
+-
+    '52e1fe64f1e645caa17828a4be35d8d5'
 
 # 是否开启自动回复限制  1:对指定好友开启自动回复,2:对所有好友开启自动回复
 open_reply_limit: 2

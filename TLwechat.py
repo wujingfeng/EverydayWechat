@@ -14,10 +14,12 @@ from bs4 import BeautifulSoup
 from simplejson import JSONDecodeError
 
 import CityDict as city_dict
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # fire the job again if it was missed within GRACE_PERIOD
 GRACE_PERIOD = 15 * 60
+
+
 class info:
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -71,11 +73,10 @@ class info:
             init_msg += print_msg
 
         print('*' * 50)
-        print(init_msg)
+        # print(init_msg)
 
         hour, minute = [int(x) for x in alarm_timed.split(':')]
         return girlfriend_list, hour, minute, dictum_channel, tuling_key, auto_reply_list, open_reply_limit
-
 
     def get_ciba_info(self):
         """
@@ -230,7 +231,6 @@ class info:
         print('登录成功')
         return False
 
-
     def start_today_info(self, is_test=False):
         """
         每日定时开始处理。
@@ -261,8 +261,6 @@ class info:
                 UserName = UserName[0]['UserName']
             else:
                 UserName = 'filehelper'
-            print(wechat_name)
-            print(UserName)
             print('给『{}』发送的内容是:\n{}'.format(wechat_name, today_msg))
 
             if not is_test:
@@ -276,7 +274,7 @@ class info:
     def addTimer(self):
 
         # 定时任务
-        scheduler = BlockingScheduler()
+        scheduler = BackgroundScheduler()
         # 每天9：30左右给女朋友发送每日一句
         scheduler.add_job(self.start_today_info, 'cron', hour=self.alarm_hour,
                           minute=self.alarm_minute, misfire_grace_time=GRACE_PERIOD)
@@ -290,41 +288,30 @@ def get_response(msg):
     # 构造了要发送给服务器的数据
     apiUrl = 'http://www.tuling123.com/openapi/api'
 
+    key_length = len(info().tuling_key)-1
     try:
-        key_length = len(info.tuling_key)
-        data = {
-            'key': info.tuling_key[random.randint(0, key_length)],
-            'info': msg,
-            'userid': '460281',
-        }
-        r = requests.post(apiUrl, data=data).json()
-        return r.get('text')
+        num = 0
+        while (num < 5):
+            num += 1
+            data = {
+                'key': info().tuling_key[random.randint(0, key_length)],
+                'info': msg,
+                'userid': '460281',
+            }
+            r = requests.post(apiUrl, data=data).json()
+            # 如果没有请求次数了,则重新请求
+            if r['code'] == 40004:
+                continue
+            else:
+                return r.get('text')
 
-    # key_length = len(info.tuling_key)
-    # try:
-    #     num = 0
-    #     while (num < 5):
-    #         data = {
-    #             'key': info.tuling_key[random.randint(0, key_length)],
-    #             'info': msg,
-    #             'userid': '460281',
-    #         }
-    #         r = requests.post(apiUrl, data=data).json()
-    #         print(r.get('text'))
-    #         # 如果没有请求次数了,则重新请求
-    #         if r['code'] == 40004:
-    #             continue
-    #         num += num
-    #     # 纯粹为了打个日志
-    #     if r['code'] == 40004:
-    #         print(r.get('text'))
-    #     return r.get('text')
 
     # 为了防止服务器没有正常响应导致程序异常退出，这里用try-except捕获了异常
     # 如果服务器没能正常交互（返回非json或无法连接），那么就会进入下面的return
     except:
         # 将会返回一个None
         return
+
 
 # 这里是我们在“1. 实现微信消息的获取”中已经用到过的同样的注册方法
 @itchat.msg_register(itchat.content.TEXT)
@@ -335,14 +322,13 @@ def tuling_reply(msg):
     reply = get_response(msg['Text'])
     # a or b的意思是，如果a有内容，那么返回a，否则返回b
     # 有内容一般就是指非空或者非None，你可以用`if a: print('True')`来测试
-    return reply or defaultReply
-    # if info.open_reply_limit == 1:
-    #     if msg['User']['NickName'] in info.auto_reply_list:
-    #         return reply or defaultReply
-    #     else:
-    #         return
-    # else:
-    #     return reply or defaultReply
+    if info().open_reply_limit == 1:
+        if msg['User']['NickName'] in info().auto_reply_list:
+            return reply or defaultReply
+        else:
+            return
+    else:
+        return reply or defaultReply
 
 
 # 为了让实验过程更加方便（修改程序不用多次扫码），我们使用热启动
@@ -351,4 +337,3 @@ def tuling_reply(msg):
 itchat.auto_login(hotReload=True)
 info().addTimer()
 itchat.run()
-
