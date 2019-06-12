@@ -63,7 +63,7 @@ def get_init_data():
         init_msg += print_msg
 
     print('*' * 50)
-    # print(init_msg)
+    print(init_msg)
 
     hour, minute = [int(x) for x in alarm_timed.split(':')]
     return girlfriend_list, hour, minute, dictum_channel, tuling_key, auto_reply_list, open_reply_limit
@@ -297,7 +297,6 @@ def get_response(msg):
                 'userid': '460281',
             }
             r = requests.post(apiUrl, data=data).json()
-            print(r)
             # 如果没有请求次数了,则重新请求
             if r['code'] == 40004:
                 continue
@@ -312,16 +311,12 @@ def get_response(msg):
         return
 
 
-# 这里是我们在“1. 实现微信消息的获取”中已经用到过的同样的注册方法
 @itchat.msg_register(itchat.content.TEXT)
 def tuling_reply(msg):
     # 为了保证在图灵Key出现问题的时候仍旧可以回复，这里设置一个默认回复
     defaultReply = 'I received: ' + msg['Text']
     # 如果图灵Key出现问题，那么reply将会是None
     reply = get_response(msg['Text'])
-    print(reply)
-    # a or b的意思是，如果a有内容，那么返回a，否则返回b
-    # 有内容一般就是指非空或者非None，你可以用`if a: print('True')`来测试
     if open_reply_limit == 1:
         if msg['User']['NickName'] in auto_reply_list:
             return reply or defaultReply
