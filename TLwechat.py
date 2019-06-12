@@ -19,64 +19,62 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # fire the job again if it was missed within GRACE_PERIOD
 GRACE_PERIOD = 15 * 60
 
+dictum_channel_name = {1: 'ONE●一个', 2: '词霸(每日英语)', 3: '土味情话'}
+def get_init_data():
+    """
+    初始化基础数据。
+    :return: (dict,int,int,int)
+        1.dict 需要发送的用户的信息；
+        2.int 时；
+        3.int 分；
+        4.int 格言渠道。（1: 'ONE●一个', 2: '词霸(每日英语)', 3: '土味情话'）
+    """
+    itchat.auto_login(hotReload=True)
+    with open('_config.yaml', 'r', encoding='utf-8') as file:
+        config = yaml.load(file, Loader=yaml.Loader)
+
+    alarm_timed = config.get('alarm_timed').strip()
+    init_msg = '每天定时发送时间：{}\n'.format(alarm_timed)
+
+    dictum_channel = config.get('dictum_channel', -1)
+    init_msg += '格言获取渠道：{}\n'.format(dictum_channel_name.get(dictum_channel, '无'))
+
+    tuling_key = config.get('tuling_key')
+
+    auto_reply_list = config.get('auto_reply_list')
+
+    open_reply_limit = config.get('open_reply_limit')
+
+    girlfriend_list = []
+    girlfriend_infos = config.get('girlfriend_infos')
+    for girlfriend in girlfriend_infos:
+        girlfriend.get('wechat_name').strip()
+        # 根据城市名称获取城市编号，用于查询天气。查看支持的城市为：http://cdn.sojson.com/_city.json
+        city_name = girlfriend.get('city_name').strip()
+        city_code = city_dict.CityDict.city_dict.get(city_name)
+        if not city_code:
+            print('您输入的城市无法收取到天气信息。')
+            break
+        girlfriend['city_code'] = city_code
+        girlfriend_list.append(girlfriend)
+        print_msg = (
+            '女朋友的微信昵称：{wechat_name}\n\t女友所在城市名称：{city_name}\n\t'
+            '在一起的第一天日期：{start_date}\n\t最后一句为：{sweet_words}\n'.format(**girlfriend))
+        init_msg += print_msg
+
+    print('*' * 50)
+    # print(init_msg)
+
+    hour, minute = [int(x) for x in alarm_timed.split(':')]
+    return girlfriend_list, hour, minute, dictum_channel, tuling_key, auto_reply_list, open_reply_limit
+
+girlfriend_list, alarm_hour, alarm_minute, dictum_channel, tuling_key, auto_reply_list, open_reply_limit = get_init_data()
 
 class info:
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/67.0.3396.87 Safari/537.36',
     }
-    dictum_channel_name = {1: 'ONE●一个', 2: '词霸(每日英语)', 3: '土味情话'}
-
-    def __init__(self):
-        self.girlfriend_list, self.alarm_hour, self.alarm_minute, self.dictum_channel, self.tuling_key, self.auto_reply_list, self.open_reply_limit = self.get_init_data()
-
-    def get_init_data(self):
-        """
-        初始化基础数据。
-        :return: (dict,int,int,int)
-            1.dict 需要发送的用户的信息；
-            2.int 时；
-            3.int 分；
-            4.int 格言渠道。（1: 'ONE●一个', 2: '词霸(每日英语)', 3: '土味情话'）
-        """
-        itchat.auto_login(hotReload=True)
-        with open('_config.yaml', 'r', encoding='utf-8') as file:
-            config = yaml.load(file, Loader=yaml.Loader)
-
-        alarm_timed = config.get('alarm_timed').strip()
-        init_msg = '每天定时发送时间：{}\n'.format(alarm_timed)
-
-        dictum_channel = config.get('dictum_channel', -1)
-        init_msg += '格言获取渠道：{}\n'.format(self.dictum_channel_name.get(dictum_channel, '无'))
-
-        tuling_key = config.get('tuling_key')
-
-        auto_reply_list = config.get('auto_reply_list')
-
-        open_reply_limit = config.get('open_reply_limit')
-
-        girlfriend_list = []
-        girlfriend_infos = config.get('girlfriend_infos')
-        for girlfriend in girlfriend_infos:
-            girlfriend.get('wechat_name').strip()
-            # 根据城市名称获取城市编号，用于查询天气。查看支持的城市为：http://cdn.sojson.com/_city.json
-            city_name = girlfriend.get('city_name').strip()
-            city_code = city_dict.CityDict.city_dict.get(city_name)
-            if not city_code:
-                print('您输入的城市无法收取到天气信息。')
-                break
-            girlfriend['city_code'] = city_code
-            girlfriend_list.append(girlfriend)
-            print_msg = (
-                '女朋友的微信昵称：{wechat_name}\n\t女友所在城市名称：{city_name}\n\t'
-                '在一起的第一天日期：{start_date}\n\t最后一句为：{sweet_words}\n'.format(**girlfriend))
-            init_msg += print_msg
-
-        print('*' * 50)
-        # print(init_msg)
-
-        hour, minute = [int(x) for x in alarm_timed.split(':')]
-        return girlfriend_list, hour, minute, dictum_channel, tuling_key, auto_reply_list, open_reply_limit
 
     def get_ciba_info(self):
         """
@@ -240,16 +238,16 @@ class info:
         print('*' * 50)
         print('获取相关信息...')
 
-        if self.dictum_channel == 1:
+        if dictum_channel == 1:
             dictum_msg = self.get_dictum_info()
-        elif self.dictum_channel == 2:
+        elif dictum_channel == 2:
             dictum_msg = self.get_ciba_info()
-        elif self.dictum_channel == 3:
+        elif dictum_channel == 3:
             dictum_msg = self.get_lovelive_info()
         else:
             dictum_msg = ''
 
-        for girlfriend in self.girlfriend_list:
+        for girlfriend in girlfriend_list:
             city_code = girlfriend.get('city_code')
             start_date = girlfriend.get('start_date').strip()
             sweet_words = girlfriend.get('sweet_words')
@@ -276,8 +274,8 @@ class info:
         # 定时任务
         scheduler = BackgroundScheduler()
         # 每天9：30左右给女朋友发送每日一句
-        scheduler.add_job(self.start_today_info, 'cron', hour=self.alarm_hour,
-                          minute=self.alarm_minute, misfire_grace_time=GRACE_PERIOD)
+        scheduler.add_job(self.start_today_info, 'cron', hour=alarm_hour,
+                          minute=alarm_minute, misfire_grace_time=GRACE_PERIOD)
         # 每隔 2 分钟发送一条数据用于测试。
         # scheduler.add_job(self.start_today_info, 'interval', seconds=120)
         scheduler.start()
@@ -288,22 +286,24 @@ def get_response(msg):
     # 构造了要发送给服务器的数据
     apiUrl = 'http://www.tuling123.com/openapi/api'
 
-    key_length = len(info().tuling_key)-1
+    # key_length = len(tuling_key)-1
     try:
         num = 0
         while (num < 5):
             num += 1
             data = {
-                'key': info().tuling_key[random.randint(0, key_length)],
+                # 'key': tuling_key[random.randint(0, key_length)],
+                'key': '359a013d925040a28e6191831f9f36bc',
                 'info': msg,
                 'userid': '460281',
             }
             r = requests.post(apiUrl, data=data).json()
+            print(r)
             # 如果没有请求次数了,则重新请求
             if r['code'] == 40004:
                 continue
             else:
-                return r.get('text')
+               return r.get('text')
 
 
     # 为了防止服务器没有正常响应导致程序异常退出，这里用try-except捕获了异常
@@ -320,10 +320,11 @@ def tuling_reply(msg):
     defaultReply = 'I received: ' + msg['Text']
     # 如果图灵Key出现问题，那么reply将会是None
     reply = get_response(msg['Text'])
+    print(reply)
     # a or b的意思是，如果a有内容，那么返回a，否则返回b
     # 有内容一般就是指非空或者非None，你可以用`if a: print('True')`来测试
-    if info().open_reply_limit == 1:
-        if msg['User']['NickName'] in info().auto_reply_list:
+    if open_reply_limit == 1:
+        if msg['User']['NickName'] in auto_reply_list:
             return reply or defaultReply
         else:
             return
