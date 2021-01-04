@@ -1,0 +1,57 @@
+def get_weather_info(self, dictum_msg, city_code, start_date, sweet_words):
+        """
+        获取天气信息。网址：https://www.sojson.com/blog/305.html .
+        :param dictum_msg: str,发送给朋友的信息。
+        :param city_code: str,城市对应编码。如：101030100
+        :param start_date: str,恋爱第一天日期。如：2018-01-01
+        :param sweet_words: str,来自谁的留言。如：来自你的朋友
+        :return: str,需要发送的话。
+        """
+        print('获取天气信息...')
+        weather_url = 'https://tianqiapi.com/api?version=v6&appid=65947626&appsecret=X8qDObVi&cityid=101010200'
+        resp = requests.get(url=weather_url)
+        if resp.status_code == 200:
+            weather_dict = resp.json()
+            # 今日天气
+            today_weather = '天气 : {}'.format(weather_dict.get('wea'))
+            # 今日日期
+            today_time = (datetime.now().strftime('%Y{y}%m{m}%d{d} %H:%M:%S')
+                          .format(y='年', m='月', d='日'))
+            # 今日天气注意事项
+            notice = weather_dict.get('notice')
+            # 温度
+            high = weather_dict.get('tem1')
+            high_c = high[high.find(' ') + 1:]
+            low = weather_dict.get('tem2')
+            low_c = low[low.find(' ') + 1:]
+            temperature = '温度 : {}/{}'.format(low+'℃', high+'℃')
+
+            # 风
+            wind_direction = weather_dict.get('win')
+            wind_level = weather_dict.get('win_speed')
+            wind = '{} : {}'.format(wind_direction, wind_level)
+
+            # 空气指数
+            aqi = weather_dict.get('air')
+            aqi = '空气质量 : {}'.format(aqi)
+
+            # 在一起，一共多少天了，如果没有设置初始日期，则不用处理
+            if start_date:
+                try:
+                    start_datetime = datetime.strptime(start_date, '%Y-%m-%d')
+                    day_delta = (datetime.now() - start_datetime).days
+                    delta_msg = '宝贝这是我们在一起的第 {} 天。\n'.format(day_delta)
+                except ValueError:
+                    delta_msg = ''
+            else:
+                delta_msg = ''
+
+            today_msg = (
+                '{today_time}\n{delta_msg}{today_weather}\n{temperature}\n'
+                '{wind}\n{aqi}\n{dictum_msg}{sweet_words}\n'.format(
+                    today_time=today_time, delta_msg=delta_msg, notice=notice,
+                    temperature=temperature, wind=wind, aqi=aqi,today_weather=today_weather,
+                    dictum_msg=dictum_msg, sweet_words=sweet_words if sweet_words else ""))
+            print(today_msg)
+            print('============')
+            return today_msg
